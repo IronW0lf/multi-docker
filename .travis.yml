@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t valdemaras/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run valdemaras/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t valdemaras/multi-client ./client
+  - docker build -t valdemaras/multi-nginx ./nginx
+  - docker build -t valdemaras/multi-server ./server
+  - docker build -t valdemaras/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push valdemaras/multi-client
+  - docker push valdemaras/multi-nginx
+  - docker push valdemaras/multi-server
+  - docker push valdemaras/multi-worker
